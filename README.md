@@ -1,10 +1,19 @@
+# Install packages
+
+```bash
 npm i
+```
+## Start Redis Server On Mac
 
-//start redis server on mac
+```bash
 brew services start redis
-
-//or On Ubuntu
+```
+## Start Redis Server On ubuntu
+```bash
 sudo systemctl start redis
+```
+## 
 
+```bash
 npm start
-
+```
