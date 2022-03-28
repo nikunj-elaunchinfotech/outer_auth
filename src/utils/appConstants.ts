@@ -7,7 +7,8 @@ export class AppConstants {
     public static readonly API_PATH_LOGIN = AppConstants.API_ROUTE_SOCKET + "/login"
     public static readonly API_PATH_LOGOUT = AppConstants.API_ROUTE_SOCKET + "/logout"
     public static readonly API_PATH_REFRESH_TOKEN = AppConstants.API_ROUTE_SOCKET + "/refreshToken"
-
+    
+    public static readonly API_PATH_USER_VALIDATION = AppConstants.API_ROUTE_SOCKET + "/userValidation"
     public static readonly MODEL_USER = 'User'
 
 

@@ -56,8 +56,34 @@ async function registerValidation(req: Request, res: Response, next: NextFunctio
 
 }
 
-async function verifyOTPValidation(req: Request, res: Response, next: NextFunction) {
+async function userValidation(req: Request, res: Response, next: NextFunction) {
+    const username = UserData.USERNAME.toString();
+    const email = UserData.EMAIL.toString();
+    const mobile = UserData.MOBILE.toString();
 
+    const validationRule = {
+        "username":{
+            [username]: "string|min:3|max:255|exist:User,username",
+            [email]: "string|email|max:255|exist:User,email",
+            [mobile]: "string|min:10",
+        }
+    }
+    
+    validator.validatorUtil(req.body, validationRule, {}, (err: any, status: boolean) => {
+        if (!status) {
+            console.log("ERRORS :", err)
+
+            return commonUtils.sendError(req, res, {
+                errors: commonUtils.formattedErrors(err)
+            });
+        } else {
+            next();
+        }
+    });
+
+}
+
+async function verifyOTPValidation(req: Request, res: Response, next: NextFunction) {
     const validationRule = {
         "mobileNumber": "required|string",
         "countryCode": "required|string",
@@ -82,9 +108,9 @@ async function verifyOTPValidation(req: Request, res: Response, next: NextFuncti
 
 }
 
-
 export default {
     loginValidation,
     registerValidation,
+    userValidation
 }
 

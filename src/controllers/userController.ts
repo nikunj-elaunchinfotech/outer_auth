@@ -7,6 +7,7 @@ import {RedisHelper} from "../redisHelper";
 import commonUtils from "../utils/commonUtils";
 import { UserData } from "../utils/enum";
 import mongoose from "mongoose";
+import axios, { AxiosResponse } from "axios";
 
 const bcrypt = require("bcryptjs");
 const config = require("config")
@@ -49,23 +50,29 @@ export class UserController {
         if(!username && !email && !mobile) return commonUtils.sendError(req, res, {message: AppStrings.USERNAME_EMAIL_MOBILE_REQUIRED}, 400);
 
         try {
-
+            let find_filed;
+            let message;
             if(username) {
-                const user = await User.findOne({username: username}).exec();
-                if (user === null) return commonUtils.sendError(req, res, {message: AppStrings.USERNAME_NOT_EXISTS}, 409);
+              find_filed = {username: username}
+               message = AppStrings.USERNAME_NOT_EXISTS 
             }else if(email) {
-                const user = await User.findOne({email: email}).exec();
-                if (user === null) return commonUtils.sendError(req, res, {message: AppStrings.EMAIL_NOT_EXISTS}, 409);
+              find_filed = {email: email}
+                message = AppStrings.EMAIL_NOT_EXISTS
             } else {
-                const user = await User.findOne({mobile: mobile}).exec();
-                if (user === null) return commonUtils.sendError(req, res, {message: AppStrings.MOBILE_NOT_EXISTS}, 409);
+              find_filed = {mobile: mobile}
+                message = AppStrings.MOBILE_NOT_EXISTS
             }
-
-            // use above 
-
+            
+            const user = await User.findOne(find_filed).exec();
+            if (user === null) return commonUtils.sendError(req, res, {message: message}, 409);
+            
             const valid_password = await bcrypt.compare(password, user.password);
             if (!valid_password) return commonUtils.sendError(req, res, {message: AppStrings.INVALID_PASSWORD}, 409);
-
+            
+            const user_object = {
+                created_at : user.createdAt,
+                user_id : user._id,
+            }
             const accessToken = jwt.sign({sub: user._id}, config.get("JWT_ACCESS_SECRET"), {expiresIn: config.get("JWT_ACCESS_TIME")});
 
             const refreshToken = await generateRefreshToken(user._id)
@@ -77,30 +84,14 @@ export class UserController {
     }
 
     public async checkUnique(req: any, res: Response) {
-        const name = UserData.USERNAME.toString();
-        const email = UserData.EMAIL.toString();
-        const mobile = UserData.MOBILE.toString();
-        // encrypt password
-        const userdata = new User({
-            username: req.body.username[name],
-            email: req.body.username[email],
-            mobile: req.body.username[mobile]     
-        });
-
-        try {
-            const user = await User.findOne({username: userdata.username}).exec();
-            if (user !== null) return commonUtils.sendError(req, res, {message: AppStrings.USERNAME_EXISTS}, 409);
-
-            const userEmail = await User.findOne({email: userdata.email}).exec();
-            if (userEmail !== null) return commonUtils.sendError(req, res, {message: AppStrings.EMAIL_EXISTS}, 409);
-
-            const userMobile = await User.findOne({mobile: userdata.mobile}).exec();
-            if (userMobile !== null) return commonUtils.sendError(req, res, {message: AppStrings.MOBILE_EXISTS}, 409);
-
-            return commonUtils.sendSuccess(req, res, {message: AppStrings.USERNAME_NOT_EXISTS});
-        } catch (error) {
-            return commonUtils.sendError(req, res, {"error": error}, 409);
-        }
+        // user is okay
+        const username = req.body.username[UserData.USERNAME.toString()];
+        const email = req.body.username[UserData.EMAIL.toString()]; 
+        const mobile = req.body.username[UserData.MOBILE.toString()];
+        
+        return commonUtils.sendSuccess(req, res, {});
+             
+        
     }
 
 
